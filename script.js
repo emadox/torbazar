@@ -111,10 +111,16 @@ async function loadVentas() {
 // Guardar una nueva venta en Supabase
 async function guardarVentaSupabase(venta) {
     try {
+        // Construir timestamp con fecha + hora actual
+        const now = new Date();
+        const fechaObj = new Date(venta.fecha); // convierte fecha input (YYYY-MM-DD) a Date
+        fechaObj.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+        const created_at = fechaObj.toISOString(); // ISO 8601: YYYY-MM-DDTHH:mm:ss.sssZ
+        
         const { error } = await supabase
             .from('ventas')
             .insert([{
-                created_at: venta.fecha,
+                created_at: created_at,
                 producto: venta.producto,
                 cantidad: venta.cantidad,
                 costo_unit: venta.costoUnitario,
@@ -126,7 +132,7 @@ async function guardarVentaSupabase(venta) {
             }]);
         
         if (error) throw error;
-        console.info('✅ Venta guardada en Supabase');
+        console.info('✅ Venta guardada en Supabase:', created_at);
     } catch (err) {
         console.error('❌ Error guardando venta:', err.message);
         throw err;
@@ -364,9 +370,12 @@ function actualizarTabla() {
     tbody.innerHTML = '';
     
     ventas.forEach((venta, index) => {
+        // Formatear fecha con hora
+        const fechaFormato = formatearFechaHora(venta.fecha);
+        
         const row = tbody.insertRow();
         row.innerHTML = `
-            <td>${venta.fecha}</td>
+            <td>${fechaFormato}</td>
             <td>${venta.producto}</td>
             <td>${venta.cantidad}</td>
             <td>${formatearNumero(venta.costoUnitario)}</td>
@@ -411,6 +420,24 @@ function actualizarEstadisticas() {
 
 function formatearNumero(numero) {
     return '$' + numero.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function formatearFechaHora(fechaString) {
+    // Acepta: YYYY-MM-DD o ISO 8601 (YYYY-MM-DDTHH:mm:ss.sssZ)
+    const fecha = new Date(fechaString);
+    
+    if (isNaN(fecha.getTime())) {
+        return fechaString; // Si no es válida, devolver como está
+    }
+    
+    // Formato: DD/MM/YYYY HH:mm
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const año = fecha.getFullYear();
+    const horas = String(fecha.getHours()).padStart(2, '0');
+    const minutos = String(fecha.getMinutes()).padStart(2, '0');
+    
+    return `${dia}/${mes}/${año} ${horas}:${minutos}`;
 }
 
 function exportarExcel() {
