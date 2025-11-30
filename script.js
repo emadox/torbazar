@@ -435,21 +435,28 @@ function formatearNumero(numero) {
 }
 
 function formatearFechaHora(fechaString) {
-    // Acepta: YYYY-MM-DD o ISO 8601 (YYYY-MM-DDTHH:mm:ss.sssZ)
-    const fecha = new Date(fechaString);
+    // Acepta: YYYY-MM-DD o YYYY-MM-DD HH:mm:ss (string simple, sin UTC)
     
-    if (isNaN(fecha.getTime())) {
+    // Si ya está en formato DD/MM/YYYY HH:mm, devolverlo como está
+    if (fechaString.includes('/')) {
+        return fechaString;
+    }
+    
+    // Parse manual: YYYY-MM-DD HH:mm:ss
+    const partes = fechaString.split(' ');
+    const fecha = partes[0]; // YYYY-MM-DD
+    const hora = partes[1] || '00:00:00'; // HH:mm:ss (opcional)
+    
+    const [año, mes, día] = fecha.split('-');
+    const [horas, minutos] = hora.split(':');
+    
+    // Validar que sea una fecha válida
+    if (!año || !mes || !día) {
         return fechaString; // Si no es válida, devolver como está
     }
     
-    // Formato: DD/MM/YYYY HH:mm
-    const dia = String(fecha.getDate()).padStart(2, '0');
-    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-    const año = fecha.getFullYear();
-    const horas = String(fecha.getHours()).padStart(2, '0');
-    const minutos = String(fecha.getMinutes()).padStart(2, '0');
-    
-    return `${dia}/${mes}/${año} ${horas}:${minutos}`;
+    // Formato: DD/MM/YYYY HH:mm (sin conversión de zona horaria)
+    return `${día}/${mes}/${año} ${horas}:${minutos}`;
 }
 
 function exportarExcel() {
