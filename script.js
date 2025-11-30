@@ -111,11 +111,15 @@ async function loadVentas() {
 // Guardar una nueva venta en Supabase
 async function guardarVentaSupabase(venta) {
     try {
-        // Construir timestamp con fecha + hora actual
+        // Construir timestamp con fecha local + hora actual
         const now = new Date();
-        const fechaObj = new Date(venta.fecha); // convierte fecha input (YYYY-MM-DD) a Date
-        fechaObj.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
-        const created_at = fechaObj.toISOString(); // ISO 8601: YYYY-MM-DDTHH:mm:ss.sssZ
+        
+        // Parse fecha (YYYY-MM-DD) sin convertir a UTC
+        const [año, mes, día] = venta.fecha.split('-').map(Number);
+        const fechaObj = new Date(año, mes - 1, día, now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+        
+        // Convertir a ISO pero respetando zona horaria local
+        const created_at = new Date(fechaObj.getTime() - fechaObj.getTimezoneOffset() * 60000).toISOString();
         
         const { error } = await supabase
             .from('ventas')
