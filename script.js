@@ -110,20 +110,8 @@ async function loadVentas() {
 // Guardar una nueva venta en Supabase
 async function guardarVentaSupabase(venta) {
     try {
-        const now = new Date();
-        
-        // Construir ISO 8601 en hora local
-        // Formato: YYYY-MM-DDTHH:mm:ss (sin Z al final para que Supabase lo interprete como local)
-        const año = now.getFullYear();
-        const mes = String(now.getMonth() + 1).padStart(2, '0');
-        const día = String(now.getDate()).padStart(2, '0');
-        const hora = String(now.getHours()).padStart(2, '0');
-        const minutos = String(now.getMinutes()).padStart(2, '0');
-        const segundos = String(now.getSeconds()).padStart(2, '0');
-        
-        // Guardar en ISO 8601 con la fecha seleccionada + hora actual
-        const [añoInput, mesInput, díaInput] = venta.fecha.split('-');
-        const created_at = `${añoInput}-${mesInput}-${díaInput}T${hora}:${minutos}:${segundos}`;
+        // venta.fecha ya viene como ISO 8601: YYYY-MM-DDTHH:mm:ss desde agregarProducto
+        const created_at = venta.fecha;
         
         const { error } = await supabase
             .from('ventas')
