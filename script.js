@@ -354,8 +354,20 @@ function agregarProducto() {
     const ganancia = totalVenta - totalInvertido;
     const margen = totalInvertido > 0 ? ((ganancia / totalInvertido) * 100).toFixed(2) : 0;
     
+    // Construir timestamp ISO 8601 igual a como se guardará en Supabase
+    const now = new Date();
+    const año = now.getFullYear();
+    const mes = String(now.getMonth() + 1).padStart(2, '0');
+    const día = String(now.getDate()).padStart(2, '0');
+    const hora = String(now.getHours()).padStart(2, '0');
+    const minutos = String(now.getMinutes()).padStart(2, '0');
+    const segundos = String(now.getSeconds()).padStart(2, '0');
+    
+    const [añoInput, mesInput, díaInput] = fecha.split('-');
+    const fechaConHora = `${añoInput}-${mesInput}-${díaInput}T${hora}:${minutos}:${segundos}`;
+    
     const venta = {
-        fecha,
+        fecha: fechaConHora, // Guardar con timestamp completo, no solo la fecha
         producto,
         cantidad,
         costoUnitario,
