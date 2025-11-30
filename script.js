@@ -184,7 +184,17 @@ function manualSave() {
     });
 }
 
-document.getElementById('fecha').valueAsDate = new Date();
+// Establecer fecha actual (formato local YYYY-MM-DD)
+function establecerFechaHoy() {
+    const hoy = new Date();
+    // Obtener fecha local sin desfase de zona horaria
+    const año = hoy.getFullYear();
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+    const día = String(hoy.getDate()).padStart(2, '0');
+    document.getElementById('fecha').value = `${año}-${mes}-${día}`;
+}
+
+establecerFechaHoy();
 
 document.getElementById('productoForm').addEventListener('submit', function(e) {
     e.preventDefault();
