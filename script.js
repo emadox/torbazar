@@ -19,21 +19,33 @@ async function initSupabase() {
             const config = await res.json();
             SUPABASE_URL = config.supabaseUrl;
             SUPABASE_KEY = config.supabaseKey;
+            console.log('✅ Config cargada desde /api/config');
         }
     } catch (err) {
+        console.log('ℹ️ /api/config no disponible (normal en Netlify), intentando variables globales...');
         // Si /api/config no está disponible, usar variables globales (en Netlify)
         // Estas deben estar definidas en el window desde un script inyectado o en build
         SUPABASE_URL = window.SUPABASE_URL || '';
         SUPABASE_KEY = window.SUPABASE_KEY || '';
     }
     
+    console.log('🔍 SUPABASE_URL:', SUPABASE_URL ? '✓ configurado' : '✗ NO configurado');
+    console.log('🔍 SUPABASE_KEY:', SUPABASE_KEY ? '✓ configurado' : '✗ NO configurado');
+    
     if (!SUPABASE_URL || !SUPABASE_KEY) {
-        console.error('❌ Error: Variables de Supabase no configuradas');
+        console.error('❌ Error: Variables de Supabase no configuradas. Revisa:');
+        console.error('   1. Netlify Settings → Environment variables (agregar SUPABASE_URL y SUPABASE_KEY)');
+        console.error('   2. O ejecutar localmente con: npm install && npm start');
+        return false;
+    }
+    
+    if (!window.supabase) {
+        console.error('❌ Error: Cliente Supabase no cargado. Verifica que @supabase/supabase-js esté en index.html');
         return false;
     }
     
     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    console.info('✅ Supabase inicializado');
+    console.info('✅ Supabase inicializado correctamente');
     return true;
 }
 
