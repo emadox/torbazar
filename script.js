@@ -19,14 +19,29 @@ async function initSupabase() {
             const config = await res.json();
             SUPABASE_URL = config.supabaseUrl;
             SUPABASE_KEY = config.supabaseKey;
-            console.log('✅ Config cargada desde /api/config');
+            console.log('✅ Config cargada desde /api/config (servidor local)');
+        } else {
+            throw new Error('Local /api/config no disponible');
         }
     } catch (err) {
-        console.log('ℹ️ /api/config no disponible (normal en Netlify), intentando variables globales...');
-        // Si /api/config no está disponible, usar variables globales (en Netlify)
-        // Estas deben estar definidas en el window desde un script inyectado o en build
-        SUPABASE_URL = window.SUPABASE_URL || '';
-        SUPABASE_KEY = window.SUPABASE_KEY || '';
+        console.log('ℹ️ /api/config no disponible, intentando /.netlify/functions/config...');
+        try {
+            // Intentar cargar desde Netlify Function
+            const res = await fetch('/.netlify/functions/config');
+            if (res.ok) {
+                const config = await res.json();
+                SUPABASE_URL = config.supabaseUrl;
+                SUPABASE_KEY = config.supabaseKey;
+                console.log('✅ Config cargada desde /.netlify/functions/config');
+            } else {
+                throw new Error('Netlify function no disponible');
+            }
+        } catch (err2) {
+            console.log('ℹ️ Netlify function no disponible, intentando variables globales...');
+            // Si nada está disponible, usar variables globales (en Netlify, inyectadas por build.js)
+            SUPABASE_URL = window.SUPABASE_URL || '';
+            SUPABASE_KEY = window.SUPABASE_KEY || '';
+        }
     }
     
     console.log('🔍 SUPABASE_URL:', SUPABASE_URL ? '✓ configurado' : '✗ NO configurado');
