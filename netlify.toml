@@ -1,0 +1,16 @@
+<!---- 
+Este archivo es para NETLIFY. Cópialo al fichero build en Netlify como:
+File: netlify.toml
+----->
+
+[build]
+  command = "npm install"
+  publish = "."
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[plugins]]
+  package = "netlify-plugin-inline-functions-env"
