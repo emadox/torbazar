@@ -107,19 +107,18 @@ async function loadVentas() {
         alert('Error al cargar datos. Verifica la consola.');
     }
 }
-
 // Guardar una nueva venta en Supabase
 async function guardarVentaSupabase(venta) {
     try {
-        // Construir timestamp con fecha local + hora actual
         const now = new Date();
         
-        // Parse fecha (YYYY-MM-DD) sin convertir a UTC
-        const [año, mes, día] = venta.fecha.split('-').map(Number);
-        const fechaObj = new Date(año, mes - 1, día, now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+        // Construir timestamp simple: YYYY-MM-DD HH:mm:ss (sin conversión de zona horaria)
+        const hora = String(now.getHours()).padStart(2, '0');
+        const minutos = String(now.getMinutes()).padStart(2, '0');
+        const segundos = String(now.getSeconds()).padStart(2, '0');
         
-        // Convertir a ISO pero respetando zona horaria local
-        const created_at = new Date(fechaObj.getTime() - fechaObj.getTimezoneOffset() * 60000).toISOString();
+        // Guardar fecha del input + hora actual como string simple
+        const created_at = `${venta.fecha} ${hora}:${minutos}:${segundos}`;
         
         const { error } = await supabase
             .from('ventas')
@@ -142,7 +141,6 @@ async function guardarVentaSupabase(venta) {
         throw err;
     }
 }
-
 // Eliminar una venta en Supabase por ID
 async function eliminarVentaSupabase(id) {
     try {
