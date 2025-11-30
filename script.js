@@ -112,13 +112,18 @@ async function guardarVentaSupabase(venta) {
     try {
         const now = new Date();
         
-        // Construir timestamp simple: YYYY-MM-DD HH:mm:ss (sin conversión de zona horaria)
+        // Construir ISO 8601 en hora local
+        // Formato: YYYY-MM-DDTHH:mm:ss (sin Z al final para que Supabase lo interprete como local)
+        const año = now.getFullYear();
+        const mes = String(now.getMonth() + 1).padStart(2, '0');
+        const día = String(now.getDate()).padStart(2, '0');
         const hora = String(now.getHours()).padStart(2, '0');
         const minutos = String(now.getMinutes()).padStart(2, '0');
         const segundos = String(now.getSeconds()).padStart(2, '0');
         
-        // Guardar fecha del input + hora actual como string simple
-        const created_at = `${venta.fecha} ${hora}:${minutos}:${segundos}`;
+        // Guardar en ISO 8601 con la fecha seleccionada + hora actual
+        const [añoInput, mesInput, díaInput] = venta.fecha.split('-');
+        const created_at = `${añoInput}-${mesInput}-${díaInput}T${hora}:${minutos}:${segundos}`;
         
         const { error } = await supabase
             .from('ventas')
@@ -435,24 +440,34 @@ function formatearNumero(numero) {
 }
 
 function formatearFechaHora(fechaString) {
-    // Acepta: YYYY-MM-DD o YYYY-MM-DD HH:mm:ss (string simple, sin UTC)
+    // Acepta: YYYY-MM-DD, YYYY-MM-DDTHH:mm:ss, o ISO 8601
     
     // Si ya está en formato DD/MM/YYYY HH:mm, devolverlo como está
     if (fechaString.includes('/')) {
         return fechaString;
     }
     
-    // Parse manual: YYYY-MM-DD HH:mm:ss
-    const partes = fechaString.split(' ');
-    const fecha = partes[0]; // YYYY-MM-DD
-    const hora = partes[1] || '00:00:00'; // HH:mm:ss (opcional)
+    // Parse ISO 8601 o similar: YYYY-MM-DDTHH:mm:ss
+    let fecha, hora;
+    
+    if (fechaString.includes('T')) {
+        // Formato ISO: YYYY-MM-DDTHH:mm:ss
+        const [fechaParte, horaParte] = fechaString.split('T');
+        fecha = fechaParte; // YYYY-MM-DD
+        hora = horaParte.split('.')[0]; // Quita milisegundos si existen
+    } else {
+        // Formato con espacio: YYYY-MM-DD HH:mm:ss
+        const partes = fechaString.split(' ');
+        fecha = partes[0];
+        hora = partes[1] || '00:00:00';
+    }
     
     const [año, mes, día] = fecha.split('-');
     const [horas, minutos] = hora.split(':');
     
     // Validar que sea una fecha válida
     if (!año || !mes || !día) {
-        return fechaString; // Si no es válida, devolver como está
+        return fechaString;
     }
     
     // Formato: DD/MM/YYYY HH:mm (sin conversión de zona horaria)
